@@ -67,7 +67,6 @@ def obter_preco(simbolo: str):
                 10,
                 serializar_dados(dados_reais)
             )
-
         except redis.exceptions.ConnectionError:
             pass
 

@@ -45,10 +45,11 @@ Com essa alteração, a aplicação continua respondendo normalmente aos endpoin
 
 Relatório de Impacto
 
-O teste E2E foi capaz de identificar a falha, pois a segunda requisição deveria utilizar o valor armazenado em cache e retornar cached: True.
+O teste E2E foi capaz de identificar a falha, pois a segunda requisição deveria utilizar o valor armazenado em cache e retornar cached: True. 
 
 Ao executar o teste com a mutação aplicada, a validação assert dados_2["cached"] is True falha, indicando que o mecanismo de cache não está funcionando corretamente.
 
 Dessa forma, o teste garante que alterações que comprometam o armazenamento ou a expiração do cache sejam detectadas imediatamente, evitando perda de desempenho causada por consultas desnecessárias ao banco de dados ou ao processamento da aplicação.
 
 Resultado: o mutante foi detectado e eliminado pela suíte de testes.
+Segue print do erro no envio da atividade.
