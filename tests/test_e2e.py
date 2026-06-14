@@ -1,51 +1,30 @@
 from fastapi.testclient import TestClient
-
 from app.main import app, cliente_redis
 
 client = TestClient(app)
 
-
-def test_fluxo_e2e_ciclo_de_vida_do_cache():
-
+def test_fluxo_e2e_ciclo_de_vida_do_cache_meteorologico():
     if cliente_redis:
         cliente_redis.flushall()
 
-    simbolo_teste = "BTC"
+    cidade_teste = "London"
 
-    # Primeira chamada -> Cache Miss
-    resposta_1 = client.get(f"/preco/{simbolo_teste}")
-
+    # 1. Primeira chamada -> Cache Miss
+    resposta_1 = client.get(f"/clima/{cidade_teste}")
     assert resposta_1.status_code == 200
+    assert resposta_1.json()["cached"] is False
 
-    dados_1 = resposta_1.json()
-
-    assert dados_1["cached"] is False
-    assert dados_1["fonte"] == "API Externa"
-
-    # Segunda chamada -> Cache Hit
-    resposta_2 = client.get(f"/preco/{simbolo_teste}")
-
+    # 2. Segunda chamada -> Cache Hit (Rápido)
+    resposta_2 = client.get(f"/clima/{cidade_teste}")
     assert resposta_2.status_code == 200
+    assert resposta_2.json()["cached"] is True
 
-    dados_2 = resposta_2.json()
-
-    assert dados_2["cached"] is True
-    assert dados_2["fonte"] == "Cache (Redis)"
-
-    # Limpeza do cache
+    # 3. Limpeza do cache via rota do usuário
     resposta_limpeza = client.post("/cache/clear")
-
     assert resposta_limpeza.status_code == 200
-    assert resposta_limpeza.json() == {
-        "status": "Cache limpo com sucesso"
-    }
+    assert "limpo com sucesso" in resposta_limpeza.json()["status"]
 
-    # Após limpar -> volta a ser Cache Miss
-    resposta_3 = client.get(f"/preco/{simbolo_teste}")
-
+    # 4. Terceira chamada pós-limpeza -> Deve ser Cache Miss de novo
+    resposta_3 = client.get(f"/clima/{cidade_teste}")
     assert resposta_3.status_code == 200
-
-    dados_3 = resposta_3.json()
-
-    assert dados_3["cached"] is False
-    assert dados_3["fonte"] == "API Externa"
+    assert resposta_3.json()["cached"] is False

@@ -1,55 +1,39 @@
-Caso 14 - Microserviço de Cache com Redis
+Case 14: Microserviço de Cache (Redis)- Adaptado a situação de previsão metereologica. 
 
-Projeto desenvolvido para a disciplina de Testes e Qualidade de Software. O sistema consiste em uma API construída com FastAPI que utiliza Redis para armazenamento em cache, com foco na melhoria de desempenho e na validação da aplicação por meio de testes automatizados.
+Projeto desenvolvido para a disciplina de Testes e Qualidade de Software. O sistema consiste em um microserviço construído com FastAPI que implementa uma camada de cache utilizando Redis para otimizar consultas de dados meteorológicos (previsão do tempo), focado em eficiência de desempenho e validação rigorosa por meio de testes automatizados (Unitários, Integração, E2E e Mutação).
 
 Funcionalidades Implementadas
 
 Aula 1 - Estrutura Inicial e Testes Unitários
 
-Desenvolvimento da API utilizando FastAP
-Implementação de endpoints para consulta de preços e limpeza de cache.
-Tratamento e validação de dados.
-Criação de testes unitários com Pytest para validar as funções de serialização e desserialização utilizadas no cache.
+API FastAPI: Criação do endpoint principal /clima/{cidade} para consulta de condições meteorológicas e do endpoint /cache/clear para gerenciamento e invalidação do cache.
+
+Tratamento de Dados: Funções auxiliares em app/utils.py para serialização e desserialização de payloads.
+
+Testes Unitários (test_unitario.py): Validação estrita das funções de conversão com Pytest, garantindo resiliência contra tipos de dados inválidos antes de interagir com o cache.
 
 Aula 2 - Testes de Integração e Tratamento de Falhas
 
-Integração da aplicação com Redis executando em container Docker.
-Implementação de testes de integração para validar o fluxo de cache:
+Integração com Redis: Arquitetura preparada para rodar com Redis via container Docker ou simulada em memória via fakeredis para isolamento de testes.
 
-Cache Miss: consulta ao serviço externo e armazenamento no cache.
-Cache Hit: recuperação dos dados diretamente do Redis.
-Implementação de testes para cenários de falha, verificando o comportamento da API quando o serviço externo está indisponível.
+Testes de Integração (test_integ.py): Validação do ciclo lógico do cache:
 
-Execução do Projeto: Iniciar o Redis, Instalar as dependências: pip install -r requirements.txt
+Cache Miss: Quando o dado não está no Redis, o sistema consulta de forma segura o serviço meteorológico externo e armazena o resultado.
 
+Cache Hit: Consultas subsequentes recuperam os dados instantaneamente do Redis, poupando chamadas externas.
 
-Executar a aplicação:
-uvicorn app.main:app --reload
-
-Executar os testes:
-pytest
-
-
-Estrutura de Testes
-
-Testes unitários: validação das funções auxiliares relacionadas ao cache.
-Testes de integração: validação da comunicação entre a API e o Redis.
-Testes de falha: validação do comportamento da aplicação diante da indisponibilidade de serviços externos.
+Tratamento de Falhas: Teste de comportamento resiliente (retorno HTTP 502) simulando a indisponibilidade total do provedor meteorológico externo.
 
 Entrega Aula 3 — Testes E2E e Análise de Mutação
-Cenário de Mutação
 
-Foi realizada uma alteração no arquivo app/main.py, modificando o tempo de expiração do cache no método cliente_redis.setex(chave, 10, ...) de 10 para 0 (ou removendo a gravação no Redis).
+Testes End-to-End (test_e2e.py): Simulação completa da jornada do usuário: fluxo de primeira consulta (miss), segunda consulta imediata (hit), limpeza manual do cache via requisição POST e verificação do retorno ao estado original (miss).
 
-Com essa alteração, a aplicação continua respondendo normalmente aos endpoints, mas o cache deixa de ser armazenado. Como consequência, todas as requisições passam a retornar cached: False, caracterizando apenas ocorrências de cache miss.
+Cenário de Mutação Analisado
 
-Relatório de Impacto
+Para avaliar a sensibilidade e a qualidade da nossa suíte de testes, simulamos a introdução de um bug (mutante) no arquivo app/main.py. Alteramos o parâmetro de expiração do cache no método cliente_redis.setex(chave_cache, 10, ...) mudando o tempo de vida (TTL) de 10 para 0 segundos.
 
-O teste E2E foi capaz de identificar a falha, pois a segunda requisição deveria utilizar o valor armazenado em cache e retornar cached: True. 
+Impacto do Mutante: A API continuou respondendo sem estourar exceções de código, mas o mecanismo de persistência temporária foi quebrado. Todas as requisições resultavam obrigatoriamente em Cache Miss (cached: False).
 
-Ao executar o teste com a mutação aplicada, a validação assert dados_2["cached"] is True falha, indicando que o mecanismo de cache não está funcionando corretamente.
+Relatório de Impacto e Resolução: O teste End-to-End (test_e2e.py) capturou a mutação imediatamente. A asserção assert dados_2["cached"] is True falhou na segunda chamada do teste, pois o mutante impediu o dado de estar disponível no Redis.
 
-Dessa forma, o teste garante que alterações que comprometam o armazenamento ou a expiração do cache sejam detectadas imediatamente, evitando perda de desempenho causada por consultas desnecessárias ao banco de dados ou ao processamento da aplicação.
-
-Resultado: o mutante foi detectado e eliminado pela suíte de testes.
-Segue print do erro no envio da atividade.
+Resultado: O mutante foi detectado e eliminado com sucesso, comprovando a alta cobertura e confiabilidade dos testes desenvolvidos.
