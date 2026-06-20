@@ -39,4 +39,5 @@ jobs:
 
     - name: Executar suíte de testes com Pytest
       run: |
-        pytest  
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
+        pytest
