@@ -37,7 +37,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install fastapi uvicorn redis fakeredis pytest httpx
 
-    - name: Executar suíte de testes com Pytest
+    - name: Executar suíte de testes com Quality Gate de Cobertura
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)
-        pytest
+        pip install pytest-cov
+        pytest --cov=app --cov-fail-under=80
