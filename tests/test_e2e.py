@@ -28,3 +28,10 @@ def test_fluxo_e2e_ciclo_de_vida_do_cache_meteorologico():
     resposta_3 = client.get(f"/clima/{cidade_teste}")
     assert resposta_3.status_code == 200
     assert resposta_3.json()["cached"] is False
+    
+def test_endpoint_health_check():
+    resposta = client.get("/health")
+    assert resposta.status_code == 200
+    assert resposta.json()["status"] == "UP"
+    assert "componentes" in resposta.json()
+    assert "metricas_acumuladas" in resposta.json() 
