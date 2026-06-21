@@ -64,15 +64,12 @@ def buscar_clima_na_api_externa(cidade: str):
     if cidade.upper() == "INVALIDA":
         logger.error(f"Tentativa de busca com cidade inválida no provedor: {cidade}")
         raise Exception("Cidade não encontrada no provedor meteorológico")
-
-    # Dados simulados baseados na cidade
     return {
-        "cidade": city.upper(),
+        "cidade": cidade.upper(),  # <-- Corrigido aqui!
         "temperatura": 28.5,
         "condicao": "Ensolarado",
         "fonte": "Serviço Meteorológico Externo"
     }
-
 
 @app.get("/clima/{cidade}")
 def obter_clima(cidade: str):
